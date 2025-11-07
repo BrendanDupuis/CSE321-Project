@@ -35,7 +35,7 @@ void setup()
    pinMode(out,INPUT);
 
    Serial.begin(9600);
-
+  
    lcd.backlight();
    lcd.setCursor(0, 0);
    
@@ -50,34 +50,37 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   int redAvg = 0;
   int blueAvg = 0;
   int greenAvg = 0;
+  int nextTime = 2000;
+  bool boolFlag = false;
   lcd.setCursor(0, 0);
   lcd.print("Calibrating.");
   int prevLCD = 12;
-  while(millis()-startRangeTime <3100){
+  while(millis()-startRangeTime <3000){
       GetColors();           //Sets red blue and green
+      if(millis()-startRangeTime<nextTime){
+        boolFlag = true;
+        nextTime-=1000;
+      }
       read++;
-      redAvg = (Red+redAvg)/read;
-      greenAvg = (Green+greenAvg)/read;
-      blueAvg = (Blue+blueAvg)/read;
-      if(millis()-startRangeTime%1000 == 0){  //Printing Calibrating. *wait* . *wait* .
+      redAvg = Red+redAvg;
+      greenAvg = Green+greenAvg;
+      blueAvg = Blue+blueAvg;
+      if(boolFlag){  //Printing Calibrating. *wait* . *wait* .
           lcd.setCursor(prevLCD+1,0);
           lcd.print(".");
           prevLCD++;
+          boolFlag = false;
       }
   }
-  Red_Range[0] = redAvg + 15;
-  Red_Range[1] = redAvg - 15;
-  Blue_Range[0] = blueAvg + 15;
-  Blue_Range[1] = blueAvg - 15;
-  Green_Range[0] = greenAvg + 15;
-  Green_Range[1] = greenAvg - 15;
+  Red_Range[0] = redAvg/read + 15;
+  Red_Range[1] = redAvg/read - 15;
+  Blue_Range[0] = blueAvg/read + 15;
+  Blue_Range[1] = blueAvg/read - 15;
+  Green_Range[0] = greenAvg/read + 15;
+  Green_Range[1] = greenAvg/read - 15;
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Calibrated!");
-  Serial.print(Red_Range[0]);
-  Serial.print(Green_Range[0]);
-  Serial.print(Blue_Range[0]);
-
 }
 void loop(){
   //if(CALIBRATION_BUTTON == HIGH){  //Uncomment when we have button
@@ -88,13 +91,30 @@ void loop(){
   //  lcd.clear();
   //  start = 1;
   //}
+  if(millis()>4000 && start!=1){
+    start = 1;
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Beginning in:");
+    delay(1000);
+    lcd.setCursor(0, 1);
+    lcd.print("3");
+    delay(1000);
+    lcd.setCursor(0, 2);
+    lcd.print("2");
+    delay(1000);
+    lcd.setCursor(0, 3);
+    lcd.print("1");
+    delay(1000);
+    lcd.clear();
+  }
   if(start == 1){
     if(sensorTrigger && prevTime + 500 < millis()){
       sensorTrigger = false;
     }
     GetColors();
-    //if (Blue<Red && Blue<Green && Blue<14 && !sensorTrigger){ //No Range, just update when red
-    if(Red<Red_Range[0] && Red>Red_Range[1] && Blue<Blue_Range[0] && Blue>Blue_Range[1] && Green<Green_Range[0] && Green>Green_Range[1]){ //With range from calibration
+    if (Blue<Red && Blue<Green && Blue<14 && !sensorTrigger){ //No Range, just update when red
+   // if(Red<Red_Range[0] && Red>Red_Range[1] && Blue<Blue_Range[0] && Blue>Blue_Range[1] && Green<Green_Range[0] && Green>Green_Range[1] && !sensorTrigger){ //With range from calibration
         sensorTrigger = true;
         unsigned long currentTime = millis();
         period = currentTime-prevTime;
@@ -104,7 +124,7 @@ void loop(){
         lcd.print("rpm:");
         lcd.setCursor(0,1);
         lcd.print(rpm);
-        Serial.print(rpm);
+        //Serial.print(rpm);
     }
   }
 }
