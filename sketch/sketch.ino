@@ -14,10 +14,14 @@ volatile int Green_Range[2] = {0,0}; //Green+15,Green-15
 volatile int Blue_Range[2] = {0,0}; //Blue+15,Blue-15
 
 volatile unsigned long prevTime = 0, period = 0, startRangeTime=0;
-volatile float rpm = 0;
+volatile float rpm = 0.0;
 volatile int start = 0;
 bool sensorTrigger = false;
 volatile unsigned long prev;
+
+volatile unsigned long tot_actual_ms;
+volatile uint32_t rev_count = 0;
+
 
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
@@ -115,6 +119,9 @@ void loop(){
     GetColors();
     if (Blue<Red && Blue<Green && Blue<14 && !sensorTrigger){ //No Range, just update when red
    // if(Red<Red_Range[0] && Red>Red_Range[1] && Blue<Blue_Range[0] && Blue>Blue_Range[1] && Green<Green_Range[0] && Green>Green_Range[1] && !sensorTrigger){ //With range from calibration
+
+        // RPM calculation
+        lcd.clear(); // should properly reset any sticking numbers. Try removing if issues involving visibility of numbers
         sensorTrigger = true;
         unsigned long currentTime = millis();
         period = currentTime-prevTime;
@@ -125,6 +132,24 @@ void loop(){
         lcd.setCursor(0,1);
         lcd.print(rpm);
         //Serial.print(rpm);
+
+
+
+        //Time gain / loss calculation:
+        tot_actual_ms += period;
+        rev_count++; //will be multiplied by 1.8s if 33.3RPM setting, and 1.33s if 45RPM setting in calculation
+        long tot_ideal_ms = (long)rev_count*1800.0;
+        if(){ //if button for switching RPM setting is pressed (brendan please implement this if statement, let user change to 45 RPM while start timer thing is active using button)
+          tot_ideal_ms = (long)rev_count*1333.3;
+        }
+        double error_s = (double)(tot_actual_ms - tot_ideal_ms) / 1000.0;
+
+        lcd.setCursor(0, 2);
+        lcd.print("Time gain/loss:");
+        lcd.setCursor(7, 3);
+        lcd.print(error_s);
+        lcd.setCursor(13,4);
+        lcd.print("sec");
     }
   }
 }
