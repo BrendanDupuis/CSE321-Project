@@ -63,20 +63,22 @@ void setup()
 
 }
 void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation so we can get color number range
+  lcd.clear();
+  startRangeTime=millis();
   int read = 0;
   int redAvg = 0;
   int blueAvg = 0;
   int greenAvg = 0;
-  int nextTime = 250;
+  int nextTime = 750;
   bool boolFlag = false;
   lcd.setCursor(0, 0);
   lcd.print("Calibrating.");
   int prevLCD = 11;
   while(millis()-startRangeTime <3000){
       GetColors();           //Sets red blue and green
-      if(millis()-startRangeTime<nextTime){
+      if(millis()-startRangeTime>nextTime){
         boolFlag = true;
-        nextTime+=750;
+        
       }
       read++;
       redAvg = Red+redAvg;
@@ -84,19 +86,21 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
       blueAvg = Blue+blueAvg;
 
       if(boolFlag){  //Printing Calibrating. *wait* . *wait* .
+          nextTime+=750;
           lcd.setCursor(prevLCD+1,0);
           lcd.print(".");
+          delay(100);
           prevLCD++;
           boolFlag = false;
       }
   }
 
-  Red_Range[0] = redAvg/read + 30;
-  Red_Range[1] = redAvg/read - 30;
-  Blue_Range[0] = blueAvg/read + 30;
-  Blue_Range[1] = blueAvg/read - 30;
-  Green_Range[0] = greenAvg/read + 30;
-  Green_Range[1] = greenAvg/read - 30;
+  Red_Range[0] = redAvg/read + 20;
+  Red_Range[1] = redAvg/read - 20;
+  Blue_Range[0] = blueAvg/read + 20;
+  Blue_Range[1] = blueAvg/read - 20;
+  Green_Range[0] = greenAvg/read + 20;
+  Green_Range[1] = greenAvg/read - 20;
 
   EEPROM.put(0, Red_Range);
   EEPROM.put(8, Blue_Range);
@@ -111,7 +115,6 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
 void loop(){
   if(digitalRead(BUTTON_CALIBRATION) == LOW){  //Uncomment when we have button
    detectStartColor();
-   startRangeTime=millis();
    calibrated = true;
   }
   if(digitalRead(BUTTON_START) == LOW){ //Uncomment when implement start button
@@ -142,6 +145,8 @@ void loop(){
     lcd.print("1");
     delay(1000);
     lcd.clear();
+    tot_actual_ms = 0.0;
+    rev_count = 0;
   }
   if(start == 1){
     if(sensorTrigger && prevTime + 500 < millis()){
