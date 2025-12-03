@@ -1,12 +1,14 @@
 #include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
 
 #define s0 8
 #define s1 9
 #define s2 10
 #define s3 11
 #define out 12
-//#define CALIBRATION BUTTON //What pin
-//#define START BUTTON //What pin
+
+#define BUTTON_START 3
+#define BUTTON_CALIBRATION 4
 
 volatile int  Red=0, Blue=0, Green=0;
 volatile int Red_Range[2] = {0,0}; //Red+15,red-15
@@ -22,12 +24,23 @@ volatile unsigned long prev;
 volatile unsigned long tot_actual_ms;
 volatile uint32_t rev_count = 0;
 
+volatile bool calibrated = false;
+
 
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 void setup() 
 {
+  Serial.println(Red_Range[0]);
+
+  // EEPROM.get(0, Red_Range);
+  // EEPROM.get(8, Blue_Range);
+  // EEPROM.get(16, Green_Range);
+  // EEPROM.get(24, calibrated);
+
+  Serial.println(Red_Range[0]);
+
   lcd.init(); // initialize the lcd
    pinMode(s0,OUTPUT);
    pinMode(s1,OUTPUT);
@@ -69,6 +82,7 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
       redAvg = Red+redAvg;
       greenAvg = Green+greenAvg;
       blueAvg = Blue+blueAvg;
+
       if(boolFlag){  //Printing Calibrating. *wait* . *wait* .
           lcd.setCursor(prevLCD+1,0);
           lcd.print(".");
@@ -76,25 +90,33 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
           boolFlag = false;
       }
   }
+
   Red_Range[0] = redAvg/read + 15;
   Red_Range[1] = redAvg/read - 15;
   Blue_Range[0] = blueAvg/read + 15;
   Blue_Range[1] = blueAvg/read - 15;
   Green_Range[0] = greenAvg/read + 15;
   Green_Range[1] = greenAvg/read - 15;
+
+  // EEPROM.put(0, Red_Range);
+  // EEPROM.put(8, Blue_Range);
+  // EEPROM.put(16, Green_Range);
+  // EEPROM.put(24, calibrated);
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Calibrated!");
 }
 void loop(){
-  //if(CALIBRATION_BUTTON == HIGH){  //Uncomment when we have button
-  //  createColorRange();
-  //  startRangeTime=millis();
-  //}
-  //if(START_BUTTON == HIGH){ //Uncomment when implement start button
-  //  lcd.clear();
-  //  start = 1;
-  //}
+  if(BUTTON_CALIBRATION == LOW){  //Uncomment when we have button
+   detectStartColor();
+   startRangeTime=millis();
+   calibrated = true;
+  }
+  if(BUTTON_START == LOW && calibrated){ //Uncomment when implement start button
+   lcd.clear();
+   start = 1;
+  }
   if(millis()>4000 && start!=1){
     start = 1;
     lcd.clear();
@@ -131,7 +153,6 @@ void loop(){
         lcd.print("rpm:");
         lcd.setCursor(0,1);
         lcd.print(rpm);
-        //Serial.print(rpm);
 
 
 
@@ -139,16 +160,22 @@ void loop(){
         tot_actual_ms += period;
         rev_count++; //will be multiplied by 1.8s if 33.3RPM setting, and 1.33s if 45RPM setting in calculation
         long tot_ideal_ms = (long)rev_count*1800.0;
-        if(){ //if button for switching RPM setting is pressed (brendan please implement this if statement, let user change to 45 RPM while start timer thing is active using button)
-          tot_ideal_ms = (long)rev_count*1333.3;
-        }
-        double error_s = (double)(tot_actual_ms - tot_ideal_ms) / 1000.0;
-
-        lcd.setCursor(0, 2);
+        // if(){ //if button for switching RPM setting is pressed (brendan please implement this if statement, let user change to 45 RPM while start timer thing is active using button)
+        //   tot_ideal_ms = (long)rev_count*1333.3;
+        // }
+        float error_s = ((float)tot_actual_ms - (float)tot_ideal_ms) / 1000.0;
+        
+        lcd.setCursor(5, 2);
         lcd.print("Time gain/loss:");
         lcd.setCursor(7, 3);
-        lcd.print(error_s);
-        lcd.setCursor(13,4);
+        if(error_s < 0){
+          lcd.print("-");
+          lcd.setCursor(8, 3);
+          lcd.print(error_s*(-1.0));
+        }else{
+          lcd.print(error_s);
+        }
+        lcd.setCursor(13,3);
         lcd.print("sec");
     }
   }
