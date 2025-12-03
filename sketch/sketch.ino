@@ -107,17 +107,25 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   lcd.print("Calibrated!");
 }
 void loop(){
-  if(BUTTON_CALIBRATION == HIGH){  //Uncomment when we have button
+  int start_millis = 0;
+  if(BUTTON_CALIBRATION == LOW){  //Uncomment when we have button
    detectStartColor();
    startRangeTime=millis();
    calibrated = true;
   }
-  if(BUTTON_START == HIGH && calibrated){ //Uncomment when implement start button
-   
-   lcd.clear();
-   start = 1;
+  if(BUTTON_START == LOW){ //Uncomment when implement start button
+   if(!calibrated){
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Must Calibrate First!");
+   }
+   else{
+    lcd.clear();
+    start = 1;
+    start_millis = millis();
+   }
   }
-  if(millis()>4000 && start==1){
+  if(millis()<(start_millis+4000) && start==1){
     start = 1;
     lcd.clear();
     lcd.setCursor(0, 0);
