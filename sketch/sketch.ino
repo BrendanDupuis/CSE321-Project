@@ -26,6 +26,8 @@ volatile uint32_t rev_count = 0;
 
 volatile bool calibrated = false;
 
+unsigned long start_millis = 0;
+
 
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
@@ -47,15 +49,14 @@ void setup()
   pinMode(s2,OUTPUT);
   pinMode(s3,OUTPUT);
   pinMode(out,INPUT);
-  pinMode(BUTTON_CALIBRATION,INPUT);
-  pinMode(BUTTON_START,INPUT);
+  pinMode(BUTTON_CALIBRATION,INPUT_PULLUP);
+  pinMode(BUTTON_START,INPUT_PULLUP);
   pinMode(out,INPUT);
 
   Serial.begin(9600);
   
   lcd.backlight();
   lcd.setCursor(0, 0);
-   
 
   digitalWrite(s0,HIGH); //Putting S0/S1 on HIGH/HIGH levels  means the output frequency scalling is at 100% (recommended)
   digitalWrite(s1,HIGH);  //LOW/LOW is off HIGH/LOW is 20% and LOW/HIGH is  2%
@@ -90,12 +91,12 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
       }
   }
 
-  Red_Range[0] = redAvg/read + 15;
-  Red_Range[1] = redAvg/read - 15;
-  Blue_Range[0] = blueAvg/read + 15;
-  Blue_Range[1] = blueAvg/read - 15;
-  Green_Range[0] = greenAvg/read + 15;
-  Green_Range[1] = greenAvg/read - 15;
+  Red_Range[0] = redAvg/read + 30;
+  Red_Range[1] = redAvg/read - 30;
+  Blue_Range[0] = blueAvg/read + 30;
+  Blue_Range[1] = blueAvg/read - 30;
+  Green_Range[0] = greenAvg/read + 30;
+  Green_Range[1] = greenAvg/read - 30;
 
   EEPROM.put(0, Red_Range);
   EEPROM.put(8, Blue_Range);
@@ -105,15 +106,15 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Calibrated!");
+  start = 0;
 }
 void loop(){
-  int start_millis = 0;
-  if(BUTTON_CALIBRATION == LOW){  //Uncomment when we have button
+  if(digitalRead(BUTTON_CALIBRATION) == LOW){  //Uncomment when we have button
    detectStartColor();
    startRangeTime=millis();
    calibrated = true;
   }
-  if(BUTTON_START == LOW){ //Uncomment when implement start button
+  if(digitalRead(BUTTON_START) == LOW){ //Uncomment when implement start button
    if(!calibrated){
     lcd.clear();
     lcd.setCursor(0, 0);
