@@ -67,16 +67,16 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   int redAvg = 0;
   int blueAvg = 0;
   int greenAvg = 0;
-  int nextTime = 2000;
+  int nextTime = 2500;
   bool boolFlag = false;
   lcd.setCursor(0, 0);
   lcd.print("Calibrating.");
-  int prevLCD = 12;
+  int prevLCD = 11;
   while(millis()-startRangeTime <3000){
       GetColors();           //Sets red blue and green
       if(millis()-startRangeTime<nextTime){
         boolFlag = true;
-        nextTime-=1000;
+        nextTime-=750;
       }
       read++;
       redAvg = Red+redAvg;
