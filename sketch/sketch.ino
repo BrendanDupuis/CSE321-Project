@@ -7,8 +7,8 @@
 #define s3 11
 #define out 12
 
-#define BUTTON_START 3
-#define BUTTON_CALIBRATION 4
+#define BUTTON_START 4
+#define BUTTON_CALIBRATION 3
 
 volatile int  Red=0, Blue=0, Green=0;
 volatile int Red_Range[2] = {0,0}; //Red+15,red-15
@@ -34,32 +34,31 @@ void setup()
 {
   Serial.println(Red_Range[0]);
 
-  // EEPROM.get(0, Red_Range);
-  // EEPROM.get(8, Blue_Range);
-  // EEPROM.get(16, Green_Range);
-  // EEPROM.get(24, calibrated);
+  EEPROM.get(0, Red_Range);
+  EEPROM.get(8, Blue_Range);
+  EEPROM.get(16, Green_Range);
+  EEPROM.get(24, calibrated);
 
   Serial.println(Red_Range[0]);
 
   lcd.init(); // initialize the lcd
-   pinMode(s0,OUTPUT);
-   pinMode(s1,OUTPUT);
-   pinMode(s2,OUTPUT);
-   pinMode(s3,OUTPUT);
-   pinMode(out,INPUT);
- //  pinMode(CALIBRATION_BUTTON,INPUT);
-//   pinMode(START_BUTTON,INPUT);
-   pinMode(out,INPUT);
+  pinMode(s0,OUTPUT);
+  pinMode(s1,OUTPUT);
+  pinMode(s2,OUTPUT);
+  pinMode(s3,OUTPUT);
+  pinMode(out,INPUT);
+  pinMode(BUTTON_CALIBRATION,INPUT);
+  pinMode(BUTTON_START,INPUT);
+  pinMode(out,INPUT);
 
-   Serial.begin(9600);
+  Serial.begin(9600);
   
-   lcd.backlight();
-   lcd.setCursor(0, 0);
+  lcd.backlight();
+  lcd.setCursor(0, 0);
    
 
-   digitalWrite(s0,HIGH); //Putting S0/S1 on HIGH/HIGH levels  means the output frequency scalling is at 100% (recommended)
-   digitalWrite(s1,HIGH);  //LOW/LOW is off HIGH/LOW is 20% and LOW/HIGH is  2%
-   detectStartColor();
+  digitalWrite(s0,HIGH); //Putting S0/S1 on HIGH/HIGH levels  means the output frequency scalling is at 100% (recommended)
+  digitalWrite(s1,HIGH);  //LOW/LOW is off HIGH/LOW is 20% and LOW/HIGH is  2%
 
 }
 void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation so we can get color number range
@@ -98,26 +97,27 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   Green_Range[0] = greenAvg/read + 15;
   Green_Range[1] = greenAvg/read - 15;
 
-  // EEPROM.put(0, Red_Range);
-  // EEPROM.put(8, Blue_Range);
-  // EEPROM.put(16, Green_Range);
-  // EEPROM.put(24, calibrated);
+  EEPROM.put(0, Red_Range);
+  EEPROM.put(8, Blue_Range);
+  EEPROM.put(16, Green_Range);
+  EEPROM.put(24, calibrated);
 
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Calibrated!");
 }
 void loop(){
-  if(BUTTON_CALIBRATION == LOW){  //Uncomment when we have button
+  if(BUTTON_CALIBRATION == HIGH){  //Uncomment when we have button
    detectStartColor();
    startRangeTime=millis();
    calibrated = true;
   }
-  if(BUTTON_START == LOW && calibrated){ //Uncomment when implement start button
+  if(BUTTON_START == HIGH && calibrated){ //Uncomment when implement start button
+   
    lcd.clear();
    start = 1;
   }
-  if(millis()>4000 && start!=1){
+  if(millis()>4000 && start==1){
     start = 1;
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -139,8 +139,8 @@ void loop(){
       sensorTrigger = false;
     }
     GetColors();
-    if (Blue<Red && Blue<Green && Blue<14 && !sensorTrigger){ //No Range, just update when red
-   // if(Red<Red_Range[0] && Red>Red_Range[1] && Blue<Blue_Range[0] && Blue>Blue_Range[1] && Green<Green_Range[0] && Green>Green_Range[1] && !sensorTrigger){ //With range from calibration
+  //   if (Blue<Red && Blue<Green && Blue<14 && !sensorTrigger){ //No Range, just update when red
+    if(Red<Red_Range[0] && Red>Red_Range[1] && Blue<Blue_Range[0] && Blue>Blue_Range[1] && Green<Green_Range[0] && Green>Green_Range[1] && !sensorTrigger){ //With range from calibration
 
         // RPM calculation
         lcd.clear(); // should properly reset any sticking numbers. Try removing if issues involving visibility of numbers
@@ -160,9 +160,6 @@ void loop(){
         tot_actual_ms += period;
         rev_count++; //will be multiplied by 1.8s if 33.3RPM setting, and 1.33s if 45RPM setting in calculation
         long tot_ideal_ms = (long)rev_count*1800.0;
-        // if(){ //if button for switching RPM setting is pressed (brendan please implement this if statement, let user change to 45 RPM while start timer thing is active using button)
-        //   tot_ideal_ms = (long)rev_count*1333.3;
-        // }
         float error_s = ((float)tot_actual_ms - (float)tot_ideal_ms) / 1000.0;
         
         lcd.setCursor(5, 2);
