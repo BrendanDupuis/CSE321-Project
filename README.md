@@ -7,16 +7,19 @@ You will need these components:
 - 1x Arduino R3 Uno (or Elegoo Uno R3)
 - 1x TCS 3200 Color Sensor
 - 1x I2C 20x4 LCD Matrix Display
-- 9x Standard Jumper Wires
-- 1x Y Cable Splitter Jumper Wire
+- 11x Standard Jumper Wires
+- 4x Alligator Clips
+- 6x Standard Wires
+- 2x 4-Pin Buttons
 
 Once these are obtained, follow these instructions:
-1. Hook digital pins 8 to 12 into _____ [FILL IN WITH PROPER PIN INSERT]
-2. Hook analog pins A4 and A5 into ___ and ___ on the I2C display respectivley.
-3. Hook the seperate ground pins into GND on both the I2C display and the color sensor.
-4. Hook the Y-cable into 5V, and the ends into VCC of the I2C display and color sensor.
-5. _________ [DESCRIBE BUTTON LAYOUT]
-6. Attach the microcontroller to your computer via serial port.
+1. Hook digital pins 8 to 12 into s0, s1, s2, s3, and out respectively on your TCS 3200.
+2. Hook analog pins A4 and A5 into SDA and SCL respectivley on the I2C display.
+3. Hook a ground pin and the 5V pin of your microcontroller into separate breadboard terminals using two standard wires.
+4. Choose a GND and VCC pin of the TCS 3200 to hook onto the breadboard in the respective location. Additionally, hook the VCC and GND pins of the I2C in where needed.
+5. Hook any pin of both the buttons into the ground lead on the breadboard using the alligator clips and the standard wires.
+6. Again using alligator clips and standard wires, hook the diagonal pin into digital pins 3 and 4 for "start" and "calibration" respectively.
+7. Attach the microcontroller to your computer via serial port.
 
 ## Installation:
 1. Clone the repository (can be done in a number of ways, if no knowledge how to then look up a tutorial).
@@ -41,15 +44,13 @@ ALTERNATIVELY FOR STEPS 1 TO 3:
 
 4. Power the device with the serial port to a standard power outlet connection.
 
-5. The device will need to be calibrated upon startup. Line the sticker up with the sensor and press the button which you have wired for calibration, that being the button attached to digital pin ___ [FILL THIS IN].
+5. The device will need to be calibrated upon startup. Line the sticker up with the sensor and press the button which you have wired for calibration.
 
 6. Make sure the sensor gets a clear reading of the color of the sticker for the duration of its calibration, i.e. let the sticker or the sensor move as little as possible.
 
-7. Start your record player right after calibration finishes! This will ensure that the "offset" time calculation is correctly oriented.
+7. Press the start button and start your record player right after callibration has finished.
 
-8. While in the starting countdown, press the "45RPM" button which you have wired to digital pin ___ [FILL THIS IN] to switch the mode of the device to 45RPM offset time calculation mode. If this is not done for a record which is supposed to spin at 45RPM, then the device will be improperly set for 33.3RPM offset time calculation by default.
-
-9. Kick back and enjoy, or steadily calibrate your record player to the closest possible time.
+9. Kick back and enjoy, or steadily calibrate your record player in real time if you so desire.
 
 
 
