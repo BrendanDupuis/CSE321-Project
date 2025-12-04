@@ -25,8 +25,11 @@ volatile unsigned long tot_actual_ms;
 volatile uint32_t rev_count = 0;
 
 volatile bool calibrated = false;
+volatile bool just_started = false;
 
 unsigned long start_millis = 0;
+
+
 
 
 
@@ -69,11 +72,7 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
   int redAvg = 0;
   int blueAvg = 0;
   int greenAvg = 0;
-<<<<<<< HEAD
-  int nextTime = 2500;
-=======
   int nextTime = 750;
->>>>>>> 9b2eb0b5b16e4cee02e4dfe91a2e59af07929416
   bool boolFlag = false;
   lcd.setCursor(0, 0);
   lcd.print("Calibrating.");
@@ -82,11 +81,7 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
       GetColors();           //Sets red blue and green
       if(millis()-startRangeTime>nextTime){
         boolFlag = true;
-<<<<<<< HEAD
-        nextTime-=750;
-=======
         
->>>>>>> 9b2eb0b5b16e4cee02e4dfe91a2e59af07929416
       }
       read++;
       redAvg = Red+redAvg;
@@ -97,11 +92,7 @@ void detectStartColor(){ //Sensor is pointing directly at sticker, no rotation s
           nextTime+=750;
           lcd.setCursor(prevLCD+1,0);
           lcd.print(".");
-<<<<<<< HEAD
-          delay(10);
-=======
           delay(100);
->>>>>>> 9b2eb0b5b16e4cee02e4dfe91a2e59af07929416
           prevLCD++;
           boolFlag = false;
       }
@@ -157,8 +148,7 @@ void loop(){
     lcd.print("1");
     delay(1000);
     lcd.clear();
-    tot_actual_ms = 0.0;
-    rev_count = 0;
+    just_started = true;
   }
   if(start == 1){
     if(sensorTrigger && prevTime + 500 < millis()){
@@ -176,7 +166,7 @@ void loop(){
         prevTime = currentTime;
         rpm = 60000.0/period;
         lcd.setCursor(0, 0);
-        lcd.print("rpm:");
+        lcd.print("RPM:");
         lcd.setCursor(0,1);
         lcd.print(rpm);
 
@@ -185,6 +175,13 @@ void loop(){
         //Time gain / loss calculation:
         tot_actual_ms += period;
         rev_count++; //will be multiplied by 1.8s if 33.3RPM setting, and 1.33s if 45RPM setting in calculation
+
+        if(just_started){
+          just_started = false;
+          tot_actual_ms = 0.0;
+          rev_count = 0;
+        }
+
         long tot_ideal_ms = (long)rev_count*1800.0;
         float error_s = ((float)tot_actual_ms - (float)tot_ideal_ms) / 1000.0;
         
